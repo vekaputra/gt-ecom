@@ -1,10 +1,6 @@
 package com.gtda.ecom.model;
 
 import java.util.Date;
-import java.util.UUID;
-
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Parameter;
 
 import com.gtda.ecom.data.UserPayload;
 
