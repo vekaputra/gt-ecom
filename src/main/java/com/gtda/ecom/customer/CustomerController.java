@@ -1,4 +1,4 @@
-package com.gtda.ecom.controller;
+package com.gtda.ecom.customer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,23 +17,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gtda.ecom.data.UserPayload;
-import com.gtda.ecom.model.User;
-import com.gtda.ecom.repository.UserRepository;
+import com.gtda.ecom.data.CustomerRequest;
 
 @CrossOrigin(originPatterns = "*")
 @RestController
 @RequestMapping("/api")
-public class UserController {
+public class CustomerController {
   @Autowired
-  UserRepository userRepository;
+  CustomerRepository customerRepository;
 
   @GetMapping("/users")
-  public ResponseEntity<List<User>> getAllUsers() {
+  public ResponseEntity<List<Customer>> getAllUsers() {
     try {
-      List<User> users = new ArrayList<User>();
+      List<Customer> users = new ArrayList<Customer>();
 
-      userRepository.findAll().forEach(users::add);
+      customerRepository.findAll().forEach(users::add);
       if (users.isEmpty()) {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
       }
@@ -45,8 +43,8 @@ public class UserController {
   }
 
   @GetMapping("/users/{userId}")
-  public ResponseEntity<User> getUser(@PathVariable("userId") long userId) {
-    Optional<User> user = userRepository.findById(userId);
+  public ResponseEntity<Customer> getUser(@PathVariable("userId") long userId) {
+    Optional<Customer> user = customerRepository.findById(userId);
 
     if (!user.isPresent()) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -55,9 +53,9 @@ public class UserController {
   }
 
   @PostMapping("/users")
-  public ResponseEntity<User> createUser(@RequestBody UserPayload body) {
+  public ResponseEntity<Customer> createUser(@RequestBody CustomerRequest body) {
     try {
-      User newUser = userRepository.save(new User(body));
+      Customer newUser = customerRepository.save(new Customer(body, body.getPassword()));
       return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     } catch (Exception e) {
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -65,22 +63,20 @@ public class UserController {
   }
 
   @PutMapping("/users/{userId}")
-  public ResponseEntity<User> updateUser(@PathVariable("userId") long userId, @RequestBody UserPayload body) {
+  public ResponseEntity<Customer> updateUser(@PathVariable("userId") long userId, @RequestBody CustomerRequest body) {
     try {
-      Optional<User> user = userRepository.findById(userId);
+      Optional<Customer> user = customerRepository.findById(userId);
 
       if (!user.isPresent()) {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
       }
 
-      User updatedUser = user.get();
+      Customer updatedUser = user.get();
       updatedUser.setEmail(body.getEmail());
-      updatedUser.setPhoneNumber(body.getPhoneNumber());
-      updatedUser.setFirstName(body.getFirstName());
-      updatedUser.setLastName(body.getLastName());
-      updatedUser.setProfileUrl(body.getProfileUrl());
+      updatedUser.setFullName(body.getFullName());
+      updatedUser.setPassword(body.getPassword());
 
-      return new ResponseEntity<>(userRepository.save(updatedUser), HttpStatus.CREATED);
+      return new ResponseEntity<>(customerRepository.save(updatedUser), HttpStatus.CREATED);
     } catch (Exception e) {
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -89,7 +85,7 @@ public class UserController {
   @DeleteMapping("/users/{userId}")
   public ResponseEntity<HttpStatus> deleteUser(@PathVariable("userId") long userId) {
     try {
-      userRepository.deleteById(userId);
+      customerRepository.deleteById(userId);
       return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     } catch (Exception e) {
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
