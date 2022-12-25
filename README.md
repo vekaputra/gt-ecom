@@ -98,7 +98,44 @@ Since this is a test, the user flow is not a proper way to handle this. The prop
 2. If it's possible to record customer phone number, using SMS OTP will be another good way to replace forgot password token as it's more secure
 3. Forgot password token should have expiry time, so it can not be used after certain times
 
+To test this endpoint, the steps are:
+
+1. Call `POST http://localhost:8080/api/auth/signup` endpoint with payload as follow
+```
+    {
+        "email": "john.doe@gmail.com",
+        "fullName": "john doe",
+        "password": "johndoe8",
+        "confirmPassword": "johndoe8"
+    }
+```
+2. Call `POST http://localhost:8080/api/auth/login` endpoint to check if customer created successfully with payload
+```
+    {
+        "email": "john.doe@gmail.com",
+        "password": "johndoe8"
+    }
+```
+3. Call `POST http://localhost:8080/api/auth/password/forgot` endpoint to trigger forgot password flow with payload
+```
+    {
+        "email": "john.doe@gmail.com"
+    }
+```
+4. it should return url like `http://localhost:8080/api/auth/password/update/wosbuolloxjjytkrgviwtkvlkfbeagth` with forgot password token with length 32
+5. Call `PUT http://localhost:8080/api/auth/password/update/wosbuolloxjjytkrgviwtkvlkfbeagth` with following payload
+```
+    {
+        "email": "john.doe@gmail.com",
+        "password": "newpass8",
+        "confirmPassword": "newpass8"
+    }
+```
+
 ## Task #4
 
 To query list of customer who login for past 7 days (or past x day / week / hour) can use findAllActiveCustomersSince function that can be found [here](https://github.com/vekaputra/gt-ecom/blob/ba7bacf5747fbd7145c82c1fb913cf0068df757f/src/main/java/com/gtda/ecom/customer/CustomerRepository.java#L13)
+
 The query is `SELECT * FROM customers c WHERE c.last_login_at >= ?1`
+
+To test this endpoint, can try to call this endpoint `GET http://localhost:8080/api/customers/active?lastLoginAt=2022-12-20 00:00:00` after login and put `Authorization: Bearer <authToken>` on header. it should return all customer with login history after 2022-12-20
