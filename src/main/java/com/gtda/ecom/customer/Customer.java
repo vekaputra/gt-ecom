@@ -46,8 +46,8 @@ public class Customer extends BaseEntity {
     private String forgotPasswordToken;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "verified_at", nullable = true, columnDefinition = "TIMESTAMPTZ")
-    private Date verifiedAt;
+    @Column(name = "last_login_at", nullable = true, columnDefinition = "TIMESTAMPTZ")
+    private Date lastLoginAt;
 
     public Customer(CustomerRequest req, String hashedPassword) {
         this.email = req.getEmail();

@@ -1,6 +1,7 @@
 package com.gtda.ecom.auth;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +67,11 @@ public class AuthController {
   public ResponseEntity<?> login(@Valid @RequestBody LoginRequest body) throws NoSuchAlgorithmException {
     Authentication auth = authenticationManager
         .authenticate(new UsernamePasswordAuthenticationToken(body.getEmail(), body.getPassword()));
+    
+    Optional<Customer> existingCustomer = customerRepository.findFirstByEmail(body.getEmail());
+    Customer customer = existingCustomer.get();
+    customer.setLastLoginAt(new Date());
+    customerRepository.save(customer);
 
     SecurityContextHolder.getContext().setAuthentication(auth);
     String jwt = jwtUtils.generateJwtToken(auth);
