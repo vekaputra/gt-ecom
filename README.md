@@ -74,8 +74,11 @@ classDiagram
 ```
 
 `CustomerEvent` will provide ability to record all user action such as login, update data, auth token usage, etc
+
 `ShippingAddress` will provide ability to record multiple shipping address to send purchased item without the need to input each address on every purchase
+
 `ForgotPassword` will provide ability to do forgot password flow multiple times, can be used to track suspicious user and warn original user for potential account takeover
+
 `AuthToken` will provide ability to handle oauth2 login using not only own authentication service, but multiple social login as well to make it easier for user onboarding
 
 ## Task #3
