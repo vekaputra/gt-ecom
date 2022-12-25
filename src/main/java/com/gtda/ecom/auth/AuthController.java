@@ -11,7 +11,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,7 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gtda.ecom.customer.Customer;
 import com.gtda.ecom.customer.CustomerRepository;
 import com.gtda.ecom.data.SignUpRequest;
+import com.gtda.ecom.data.UpdatePasswordRequest;
 import com.gtda.ecom.data.ErrorResponse;
+import com.gtda.ecom.data.ForgotPasswordRequest;
+import com.gtda.ecom.data.ForgotPasswordResponse;
 import com.gtda.ecom.data.JwtResponse;
 import com.gtda.ecom.data.LoginRequest;
 import com.gtda.ecom.data.MessageResponse;
@@ -68,5 +73,42 @@ public class AuthController {
     UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
     return ResponseEntity
         .ok(new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail()));
+  }
+
+  @PostMapping("/password/forgot")
+  public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest body)
+      throws NoSuchAlgorithmException {
+    Optional<Customer> existingCustomer = customerRepository.findFirstByEmail(body.getEmail());
+    if (!existingCustomer.isPresent()) {
+      return ResponseEntity.badRequest().body(new ErrorResponse("customer do not exist"));
+    }
+
+    Customer customer = existingCustomer.get();
+    String forgotPasswordToken = TokenUtils.generateRandomStringToken();
+    customer.setForgotPasswordToken(forgotPasswordToken);
+
+    customerRepository.save(customer);
+    return ResponseEntity.ok().body(new ForgotPasswordResponse(
+        "http://localhost:8080/api/auth/password/update/" + forgotPasswordToken, forgotPasswordToken));
+  }
+
+  @PutMapping("/password/update/{forgotPasswordToken}")
+  public ResponseEntity<?> updatePassword(@PathVariable("forgotPasswordToken") String forgorPasswordToken, @Valid @RequestBody UpdatePasswordRequest body)
+      throws NoSuchAlgorithmException {
+    Optional<Customer> existingCustomer = customerRepository.findFirstByEmailAndForgotPasswordToken(body.getEmail(), forgorPasswordToken);
+    if (!existingCustomer.isPresent()) {
+      return ResponseEntity.badRequest().body(new ErrorResponse("invalid data given"));
+    }
+
+    if (!body.getPassword().equals(body.getConfirmPassword())) {
+      return ResponseEntity.badRequest().body(new ErrorResponse("password do not match"));
+    }
+
+    Customer customer = existingCustomer.get();
+    customer.setForgotPasswordToken(null);
+    customer.setPassword(encoder.encode(body.getPassword()));
+    customerRepository.save(customer);
+
+    return ResponseEntity.ok().body(new MessageResponse("update password success"));
   }
 }

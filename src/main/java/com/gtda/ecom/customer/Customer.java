@@ -41,6 +41,10 @@ public class Customer extends BaseEntity {
     @JsonIgnore
     private String password;
 
+    @Column(name = "forgot_password_token", nullable = true)
+    @JsonIgnore
+    private String forgotPasswordToken;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "verified_at", nullable = true, columnDefinition = "TIMESTAMPTZ")
     private Date verifiedAt;
